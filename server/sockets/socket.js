@@ -20,6 +20,9 @@ io.on('connection', (client) => {
         client.join(data.sala);
         userControl.addUser(client.id, data.nombre, data.sala);
         
+        //enviar mensaje a todos del ingreso al chat
+        client.to(data.sala).emit('messageJoinChat', makeMessage('Administrador', `${data.nombre} Ha ingresado a la conversación.`));
+        
         //retornar las personas online en el callback
         let usersOnline = userControl.getUsersByRoom(data.sala);
         client.to(data.sala).emit('usersOnline', usersOnline);
@@ -28,13 +31,14 @@ io.on('connection', (client) => {
     });
     
     //Message for Room
-    client.on('sendMessage', (message) => {
+    client.on('sendMessage', (message,callback) => {
         
         const user = userControl.getUser(client.id);
         
         const emitMessage = makeMessage(user.nombre, message);
         
         client.to(user.sala).emit('sendMessage', emitMessage);
+        callback(emitMessage);
     });
     
     //Private Message
@@ -52,10 +56,7 @@ io.on('connection', (client) => {
         
         let userDelete = userControl.deleteUser(client.id);
         
-        client.to(userDelete.sala).emit('messageLeftChat', {
-            user: 'Admin',
-            message: `${userDelete.nombre} ha abandonado el chat`
-        });
+        client.to(userDelete.sala).emit('messageLeftChat', makeMessage('Administrador', `${userDelete.nombre} ha abandonado el chat`));
         
         //retornar usuarios en línea
         let usersOnline = userControl.getUsersByRoom(userDelete.sala);

@@ -1,5 +1,5 @@
 //Params
-let params = new URLSearchParams(window.location.search);
+// let params = new URLSearchParams(window.location.search);
 
 if(params.get('nombre') === '' || !params.has('sala')){
     window.location = 'index.html';
@@ -18,55 +18,34 @@ let socket = io();
     socket.on('connect', () => {
         console.log('conectado al servidor');
         
+        //dibujar titulo de sala
+        renderizarHeaderChat(params.get('sala'));
+        
         socket.emit('entrarChat', usuario, (resp) => {
             console.log('Usuarios Conectados: ', resp);
+            renderizarPersonas(resp);
         });
         
     });
     
     //mostrar mensaje cuando abandone el chat
-    socket.on('messageLeftChat',(data) => {
-        console.log('Servidor: ', data);
+    socket.on('messageLeftChat',(messageData) => {
+        renderizarMensajeAdmin(messageData, 'danger');
+        scrollBottom();
     });
     
     //mostrar usuarios conectados
     socket.on('usersOnline',(data) => {
         console.log('Usuarios Online: ', data);
-    });
-    
-    
-    
-    //***validar si es privado o general***
-    document.getElementById('send').addEventListener('click', () => {
-        
-        const toUser = document.getElementById('toUser');
-        
-        if(toUser.value.length == ''){
-        //si no contiene un destinatario es mensaje para todos
-            const message = document.getElementById('message').value;
-            
-            //emitir mensaje al servidor
-            socket.emit('sendMessage', message);
-            document.getElementById('message').value = "";
-        
-        } else {
-        //Contiene destinatario para mensaje privado
-            const message = document.getElementById('message').value;
-            socket.emit('privateMessage', {
-                message,
-                toUser: toUser.value
-            });
-            document.getElementById('message').value = "";
-            toUser.value = "";
-        
-        }
+        renderizarPersonas(data);
     });
     
     
     /* *** Listener Messages *** */
     //escuchar mensaje para todos
     socket.on('sendMessage', (messageData) => {
-        console.log(messageData);
+        renderizarMensajeATodos(messageData);
+        scrollBottom();
     });
     
     //escuchar mensaje privados
@@ -74,6 +53,10 @@ let socket = io();
         console.log(messageData);
     });
     
+    socket.on('messageJoinChat', (messageData) =>{
+        renderizarMensajeAdmin(messageData, 'info');
+        scrollBottom();
+    });
     //desconectarse del servidor
     socket.on('disconnect', () => {
         
