@@ -64,8 +64,10 @@ chat application Page
               background: #ebf3f5; }
   .chat-main-box .chat-right-aside {
     width: calc(100% - 250px);
+    /* background: rgb(137, 162, 170); */
     float: left; }
     .chat-main-box .chat-right-aside .chat-rbox {
+      background: #ebedee;
       height: auto;
       position: relative; }
     .chat-main-box .chat-right-aside .chat-list {
